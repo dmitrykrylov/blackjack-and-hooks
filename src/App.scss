@@ -1,0 +1,239 @@
+$red-neutral: rgb(136, 81, 81);
+$red-lose: #b94040;
+$red-bright: #fa0808;
+
+$black: #181f31;
+
+$grey-lightest: #f2f5f7;
+$grey-lighter: #bbc2c4;
+$grey: #868686;
+$grey-darker: #3c4547;
+$grey-darkest: #21292e;
+
+$blue: #41d6f7;
+
+$padding-vertical: 0.4rem;
+$padding-horizontal: 0.6rem;
+
+html {
+  font-family: "Limelight", cursive;
+  font-size: 48px;
+}
+
+body {
+  background: $grey-darkest;
+}
+
+.App {
+  text-align: center;
+  color: $grey-lightest;
+  font-size: 1rem;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  &__DealerScore {
+    position: absolute;
+    top: $padding-vertical;
+    left: $padding-horizontal;
+    text-align: left;
+  }
+  &__PlayerScore {
+    position: absolute;
+    top: $padding-vertical;
+    right: $padding-horizontal;
+    text-align: right;
+  }
+
+  &__HitButton {
+    left: 0;
+    justify-content: flex-start;
+    padding-left: $padding-horizontal;
+    padding-bottom: $padding-vertical;
+
+    background-color: #3c4547;
+    -webkit-clip-path: polygon(0 10%, 0 100%, 100% 100%);
+    clip-path: polygon(0 10%, 0 100%, 100% 100%);
+  }
+  &__StandButton {
+    right: 0;
+    justify-content: flex-end;
+    padding-right: $padding-horizontal;
+    padding-bottom: $padding-vertical;
+
+    background-color: #939393;
+    -webkit-clip-path: polygon(100% 0%, 0 100%, 100% 100%);
+    clip-path: polygon(100% 0%, 0 100%, 100% 100%);
+  }
+}
+
+.Score {
+  &__Label {
+    color: $grey;
+    font-size: 1rem;
+  }
+  &__Value {
+    color: $grey-lightest;
+    font-size: 1.4rem;
+  }
+}
+
+.ActionButton {
+  height: 2.8rem;
+  position: absolute;
+  bottom: 0;
+  width: 64%;
+  border: none;
+  color: $grey-lightest;
+  font-size: 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: flex-end;
+  user-select: none;
+
+  &:hover {
+    box-shadow: inset 1000px 1000px rgba(228, 228, 228, 0.13);
+  }
+}
+
+.Values {
+  font-size: 1rem;
+  width: 6rem;
+
+  &__Divider {
+    transform: rotate(-30deg);
+    margin: 0 0.6rem;
+    color: $grey;
+  }
+  &__DealerValue,
+  &__PlayerValue {
+    margin: 0 0.8rem;
+  }
+  &__DealerValue {
+    text-align: left;
+
+    &--unknown {
+      color: grey;
+    }
+  }
+  &__PlayerValue {
+    text-align: right;
+  }
+}
+
+.Hand {
+  display: flex;
+  margin: 0.4rem auto;
+  height: 200px;
+  max-width: 860px;
+  justify-content: center;
+  align-items: center;
+
+  &__Container {
+    display: flex;
+    position: relative;
+  }
+
+  &__Card {
+    margin: 0 -28px;
+  }
+
+  &__Result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+
+  &--win {
+    .Card__Front {
+      box-shadow: 0 6px 16px $blue;
+    }
+
+    .Hand__Result {
+      color: $blue;
+      text-shadow: 1px 1px 0 $grey-lighter;
+    }
+  }
+  &--lose {
+    .Card__Front {
+      box-shadow: 0 6px 16px $red-lose;
+    }
+
+    .Hand__Result {
+      color: $red-lose;
+      text-shadow: 1px 1px 0 $grey-darkest;
+    }
+  }
+  &--push {
+    .Card__Front {
+      box-shadow: 0 6px 16px $grey;
+    }
+
+    .Hand__Result {
+      color: $grey-lighter;
+    }
+  }
+}
+
+.Card {
+  width: 100px;
+  height: 140px;
+  font-family: "Josefin Sans", sans-serif;
+  position: relative;
+  color: $grey-lightest;
+  text-align: left;
+  font-size: 24px;
+  border-radius: 6px;
+
+  &__Front,
+  &__Back {
+    border-radius: 6px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-shadow: 2px 2px 8px rgba(150, 150, 150, 0.329);
+  }
+
+  &__Front {
+    background: $grey-darker;
+  }
+
+  &__Back {
+    background-color: $grey;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='charlie-brown' fill='%23885151' fill-opacity='0.4'%3E%3Cpath d='M9.8 12L0 2.2V.8l10 10 10-10v1.4L10.2 12h-.4zm-4 0L0 6.2V4.8L7.2 12H5.8zm8.4 0L20 6.2V4.8L12.8 12h1.4zM9.8 0l.2.2.2-.2h-.4zm-4 0L10 4.2 14.2 0h-1.4L10 2.8 7.2 0H5.8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    border: 1px solid $red-neutral;
+  }
+
+  &__Label {
+    margin: 10px;
+  }
+
+  &--suit_H &__Suit,
+  &--suit_D &__Suit {
+    color: $red-bright;
+  }
+
+  &--suit_S &__Suit,
+  &--suit_C &__Suit {
+    color: $grey-lighter;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  html {
+    font-size: 36px;
+  }
+}
+@media screen and (max-width: 480px) {
+  html {
+    font-size: 28px;
+  }
+
+  .Card {
+    transform: scale(0.8);
+  }
+}
