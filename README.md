@@ -1,68 +1,35 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Made with [Create React App](https://github.com/facebook/create-react-app) and [bem-jsx](https://github.com/dmitrykrylov/bem-jsx).
 
-## Available Scripts
+### Why I created this?
 
-In the project directory, you can run:
+I just wanted to
 
-### `npm start`
+- Try out the declarative approach brought by React Hooks by building a little app with non-trivial business logic.
+- Test my own idea of the golden mean between BEM and CSS-in-JS approaches which is embodied in [bem-jsx](https://github.com/dmitrykrylov/bem-jsx) library.
+- Design something different from the things I usually work on.
+- Exploit the famous meme for the sake of the goals mentioned above.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### What I have found out when building this app?
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+- There are so many varieties of blackjack rules. I decided to simplify this implementation as much as possible.
+- If you are going to implement the full set of blackjack rules including all the concepts like "double down" and "split", perhaps it's better to manage app state with something like Redux, Mobx or Overmind.
+- In my opinion, managing app state with `useReducer` is quite verbose. If you have complex logic in your component, your code starts to consist of `dispatch({ type: '...', ... })` noise. It's probably worth to implement [a custom hook](https://github.com/dmitrykrylov/blackjack-and-hooks/blob/703eccc8d031909338dcd7251509ea0d2d826c5b/src/hooks/useStateWithActions.js#L3) with something like`mapDispatchToProps` underhood.
+- It turns out that development of a little game can require a lot of async stuff to make your UX (gameplay) a bit more dynamic. Also, when you build a game you begin to realize how really UX affects your code.
+- It's not easy to switch your mind from classes to hooks. There is a temptation to implement **everything** in an extremely declarative way listening for state changes and running side effects using `useEffect` hook. Don't forget that many things are simpler if they are imperative, find the balance.
 
-### `npm test`
+### How to run this app on your machine?
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+git clone https://github.com/dmitrykrylov/blackjack-and-hooks.git
+cd blackjack-and-hooks
+yarn
+yarn start
+```
 
-### `npm run build`
+### I'm open to feedback
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+This app doesn't pretend to be perfect. If you find a bug or know how to make code or design better, let me know.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+MIT © [dmitrykrylov](https://github.com/dmitrykrylov)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+2019
