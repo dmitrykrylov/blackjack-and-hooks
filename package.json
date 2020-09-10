@@ -5,12 +5,12 @@
   "dependencies": {
     "bem-jsx": "^0.5.0",
     "gh-pages": "^2.0.1",
-    "lodash": "^4.17.11",
-    "node-sass": "^4.11.0",
-    "react": "^16.8.1",
-    "react-dom": "^16.8.1",
-    "react-scripts": "2.1.3",
-    "react-spring": "^8.0.5",
+    "lodash": "^4.17.20",
+    "node-sass": "^4.14.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.3",
+    "react-spring": "^8.0.27",
     "react-svg": "^7.2.6"
   },
   "scripts": {
