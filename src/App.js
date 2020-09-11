@@ -25,7 +25,7 @@ const GameStatuses = {
 };
 
 const initialState = {
-  deck: shuffle(getDeck()),
+  deck: [],
   dealerHand: [],
   playerHand: [],
   dealerScore: 0,
@@ -34,12 +34,14 @@ const initialState = {
 };
 
 const handlers = {
-  reset: state => () => ({
-    ...state,
-    deck: shuffle(getDeck()),
-    dealerHand: [],
-    playerHand: []
-  }),
+  reset: state => deck => {
+    return {
+      ...state,
+      deck: deck || shuffle(getDeck()),
+      dealerHand: [],
+      playerHand: []
+    };
+  },
   dealCardToDealer: state => (faceDown = false) => {
     return {
       ...state,
@@ -82,7 +84,7 @@ const A = block("App", ["theme"]);
 const Values = block("Values", ["unknown"]);
 const Score = block("Score");
 
-function App() {
+function App({ deck }) {
   const [state, actions] = useStateWithActions(handlers, initialState);
   const { status, dealerHand, playerHand, dealerScore, playerScore } = state;
 
@@ -101,10 +103,15 @@ function App() {
 
   // Deal cards after component mount
   useEffect(() => {
-    setTimeout(() => {
-      deal();
-    }, 1000);
+    newGame();
   }, []);
+
+  // Redeal after end of each round
+  useEffect(() => {
+    if (dealerScore > 0 || playerScore > 0) {
+      newGame();
+    }
+  }, [dealerScore, playerScore]);
 
   // If turn is moving to player, check player's cards
   useEffect(() => {
@@ -112,6 +119,7 @@ function App() {
       if (playerHasBust) {
         actions.lose();
       } else if (playerHasBlackjack) {
+        console.log("here");
         actions.win();
       } else {
         actions.setStatus(GameStatuses.PLAYER_TURN);
@@ -128,17 +136,13 @@ function App() {
     }
   }, [dealerValue]);
 
-  // Redeal after end of each round
-  useEffect(() => {
-    if (dealerScore > 0 || playerScore > 0) {
-      setTimeout(() => {
-        deal();
-      }, 1000);
-    }
-  }, [dealerScore, playerScore]);
+  async function newGame() {
+    await timeout(process.env === "test" ? 0 : 1000);
+    deal();
+  }
 
   async function deal() {
-    actions.reset();
+    actions.reset(deck);
     actions.setStatus(GameStatuses.DEAL);
 
     await dealCardToPlayer();
@@ -206,6 +210,7 @@ function App() {
         cards={dealerHand}
         win={status === GameStatuses.RESULTS && dealerHasEnoughCards}
         blackjack={status === GameStatuses.RESULTS && dealerHasBlackjack}
+        testid="dealer-hand"
       />
       <Values>
         <Values.DealerValue unknown={!dealerHasRevealed}>
@@ -219,6 +224,7 @@ function App() {
         win={status === GameStatuses.RESULTS && dealerHasBust}
         blackjack={status === GameStatuses.RESULTS && playerHasBlackjack}
         lose={status === GameStatuses.RESULTS && playerHasBust}
+        testid="player-hand"
       />
       <A.HitButton
         as={ActionButton}
@@ -238,7 +244,7 @@ function App() {
   );
 }
 
-function timeout(ms = 500) {
+function timeout(ms = process.env.NODE_ENV === "test" ? 0 : 500) {
   return new Promise(res => setTimeout(res, ms));
 }
 

@@ -4,9 +4,9 @@ import Card from "./Card";
 
 const H = block("Hand", ["win", "lose", "push"]);
 
-function Hand({ cards = [], className, blackjack, win, lose, score }) {
+function Hand({ cards = [], blackjack, win, lose, testid }) {
   return (
-    <H win={blackjack || win} lose={lose}>
+    <H win={blackjack || win} lose={lose} data-testid={testid}>
       <H.Container>
         {cards.map((card, index) => (
           <H.Card
