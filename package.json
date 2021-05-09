@@ -5,7 +5,7 @@
   "dependencies": {
     "bem-jsx": "^0.5.0",
     "gh-pages": "^2.0.1",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "node-sass": "^4.14.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
