@@ -1,96 +1,45 @@
-import React, { useEffect, useMemo } from "react";
-import shuffle from "lodash/shuffle";
+import React, { useEffect } from "react";
+import { useStore } from "effector-react";
 import block from "bem-jsx";
 
 import ActionButton from "./components/ActionButton";
 import Hand from "./components/Hand";
-import score from "./utils/score";
-import getDeck from "./utils/getDeck";
-import useStateWithActions from "./hooks/useStateWithActions";
+
+import {
+  $dealerHand,
+  $dealerScore,
+  $dealerValue,
+  $playerHand,
+  $playerScore,
+  $playerValue,
+  $status,
+  GameStatuses,
+  hit,
+  stand,
+  startNewGameFx
+} from "./model";
 
 import "./App.scss";
-
-/* 
-// DEAL - Initial or following card deals. Buttons should be disabled
-// PLAYER_TURN - Hit/Stand buttons are enabled
-// DEALER_TURN - Program "listens" when dealer receives a card and
-//               decides whether dealer should take one more card
-// RESULTS - Show a popup that tells whether user won/lost
- */
-const GameStatuses = {
-  DEAL: "deal",
-  PLAYER_TURN: "player-turn",
-  DEALER_TURN: "dealer-turn",
-  RESULTS: "results"
-};
-
-const initialState = {
-  deck: [],
-  dealerHand: [],
-  playerHand: [],
-  dealerScore: 0,
-  playerScore: 0,
-  status: GameStatuses.DEAL
-};
-
-const handlers = {
-  reset: state => deck => {
-    return {
-      ...state,
-      deck: deck || shuffle(getDeck()),
-      dealerHand: [],
-      playerHand: []
-    };
-  },
-  dealCardToDealer: state => (faceDown = false) => {
-    return {
-      ...state,
-      deck: state.deck.slice(0, -1),
-      dealerHand: [
-        ...state.dealerHand,
-        { ...state.deck.slice(-1)[0], faceDown }
-      ]
-    };
-  },
-  dealCardToPlayer: state => (faceDown = false) => ({
-    ...state,
-    deck: state.deck.slice(0, -1),
-    playerHand: [...state.playerHand, { ...state.deck.slice(-1)[0], faceDown }]
-  }),
-  revealDealerSecondCard: state => () => ({
-    ...state,
-    dealerHand: [
-      state.dealerHand[0],
-      { ...state.dealerHand[1], faceDown: false }
-    ]
-  }),
-  lose: state => () => ({
-    ...state,
-    status: GameStatuses.RESULTS,
-    dealerScore: state.dealerScore + 1
-  }),
-  win: state => () => ({
-    ...state,
-    status: GameStatuses.RESULTS,
-    playerScore: state.playerScore + 1
-  }),
-  setStatus: state => status => ({
-    ...state,
-    status
-  })
-};
 
 const A = block("App", ["theme"]);
 const Values = block("Values", ["unknown"]);
 const Score = block("Score");
 
 function App({ deck }) {
-  const [state, actions] = useStateWithActions(handlers, initialState);
-  const { status, dealerHand, playerHand, dealerScore, playerScore } = state;
+  useEffect(() => {
+    startNewGameFx(deck);
+  }, []);
 
-  // Let's make hand values to be recomputed automatically after hands change
-  const dealerValue = useMemo(() => score(dealerHand), [dealerHand]);
-  const playerValue = useMemo(() => score(playerHand), [playerHand]);
+  const dealerHand = useStore($dealerHand);
+  const playerHand = useStore($playerHand);
+
+  const status = useStore($status);
+
+  const dealerScore = useStore($dealerScore);
+  const playerScore = useStore($playerScore);
+
+  const dealerValue = useStore($dealerValue);
+  const playerValue = useStore($playerValue);
 
   const dealerHasBlackjack = dealerValue === 21;
   const playerHasBlackjack = playerValue === 21;
@@ -100,99 +49,6 @@ function App({ deck }) {
 
   const dealerHasEnoughCards =
     dealerValue > 16 && dealerValue < 21 && dealerValue > playerValue;
-
-  // Deal cards after component mount
-  useEffect(() => {
-    newGame();
-  }, []);
-
-  // Redeal after end of each round
-  useEffect(() => {
-    if (dealerScore > 0 || playerScore > 0) {
-      newGame();
-    }
-  }, [dealerScore, playerScore]);
-
-  // If turn is moving to player, check player's cards
-  useEffect(() => {
-    if (status === GameStatuses.PLAYER_TURN) {
-      if (playerHasBust) {
-        actions.lose();
-      } else if (playerHasBlackjack) {
-        console.log("here");
-        actions.win();
-      } else {
-        actions.setStatus(GameStatuses.PLAYER_TURN);
-      }
-    }
-  }, [status]);
-
-  // Check dealer takes an additional card, check dealer's cards
-  // * It doesn't make sense to divide dealer's turn
-  //   into "deal" and "dealer-turn" steps
-  useEffect(() => {
-    if (status === GameStatuses.DEALER_TURN) {
-      checkDealerStatus();
-    }
-  }, [dealerValue]);
-
-  async function newGame() {
-    await timeout(process.env === "test" ? 0 : 1000);
-    deal();
-  }
-
-  async function deal() {
-    actions.reset(deck);
-    actions.setStatus(GameStatuses.DEAL);
-
-    await dealCardToPlayer();
-    await dealCardToDealer();
-    await dealCardToPlayer();
-    await dealCardToDealer(true);
-
-    actions.setStatus(GameStatuses.PLAYER_TURN);
-  }
-
-  async function hit() {
-    actions.setStatus(GameStatuses.DEAL);
-    await dealCardToPlayer();
-    actions.setStatus(GameStatuses.PLAYER_TURN);
-  }
-
-  async function stand() {
-    actions.setStatus(GameStatuses.DEALER_TURN);
-    actions.revealDealerSecondCard();
-    checkDealerStatus();
-  }
-
-  async function checkDealerStatus() {
-    await timeout();
-    if (dealerHasBust) {
-      actions.win();
-    } else if (dealerHasBlackjack) {
-      actions.lose();
-    } else if (dealerHasEnoughCards) {
-      actions.lose();
-    } else {
-      dealCardToDealer();
-    }
-  }
-
-  function dealCardToDealer(faceDown) {
-    return new Promise(async resolve => {
-      actions.dealCardToDealer(faceDown);
-      await timeout();
-      resolve();
-    });
-  }
-
-  function dealCardToPlayer() {
-    return new Promise(async resolve => {
-      actions.dealCardToPlayer();
-      await timeout();
-      resolve();
-    });
-  }
 
   const dealerHasRevealed = dealerHand[1] && !dealerHand[1].faceDown;
 
@@ -242,10 +98,6 @@ function App({ deck }) {
       </A.StandButton>
     </A>
   );
-}
-
-function timeout(ms = process.env.NODE_ENV === "test" ? 0 : 500) {
-  return new Promise(res => setTimeout(res, ms));
 }
 
 export default App;
