@@ -9,10 +9,12 @@ import {
   $dealerHand,
   $dealerScore,
   $dealerValue,
+  $gameResult,
   $playerHand,
   $playerScore,
   $playerValue,
   $status,
+  GameResults,
   GameStatuses,
   hit,
   stand,
@@ -41,14 +43,7 @@ function App({ deck }) {
   const dealerValue = useStore($dealerValue);
   const playerValue = useStore($playerValue);
 
-  const dealerHasBlackjack = dealerValue === 21;
-  const playerHasBlackjack = playerValue === 21;
-
-  const dealerHasBust = dealerValue > 21;
-  const playerHasBust = playerValue > 21;
-
-  const dealerHasEnoughCards =
-    dealerValue > 16 && dealerValue < 21 && dealerValue > playerValue;
+  const gameResult = useStore($gameResult);
 
   const dealerHasRevealed = dealerHand[1] && !dealerHand[1].faceDown;
 
@@ -64,8 +59,8 @@ function App({ deck }) {
       </A.PlayerScore>
       <Hand
         cards={dealerHand}
-        win={status === GameStatuses.RESULTS && dealerHasEnoughCards}
-        blackjack={status === GameStatuses.RESULTS && dealerHasBlackjack}
+        win={gameResult === GameResults.DEALER_WIN}
+        blackjack={gameResult === GameResults.DEALER_HAS_BLACKJACK}
         testid="dealer-hand"
       />
       <Values>
@@ -77,9 +72,9 @@ function App({ deck }) {
       </Values>
       <Hand
         cards={playerHand}
-        win={status === GameStatuses.RESULTS && dealerHasBust}
-        blackjack={status === GameStatuses.RESULTS && playerHasBlackjack}
-        lose={status === GameStatuses.RESULTS && playerHasBust}
+        win={gameResult === GameResults.PLAYER_WIN}
+        blackjack={gameResult === GameResults.PLAYER_HAS_BLACKJACK}
+        lose={gameResult === GameResults.LOSE}
         testid="player-hand"
       />
       <A.HitButton

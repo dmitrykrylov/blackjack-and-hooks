@@ -16,13 +16,15 @@ export const GameStatuses = {
   DEALER_TURN: "dealer-turn",
   RESULTS: "results"
 };
+export const GameResults = {
+  DEALER_HAS_BLACKJACK: "dealerHasBlackjack",
+  PLAYER_HAS_BLACKJACK: "playerHasBlackjack",
+  PLAYER_WIN: "playerWin",
+  DEALER_WIN: "dealerWin",
+  LOSE: "lose"
+};
 
-export const winFx = createEffect(async () => {
-  await timeout(1000);
-  startNewGameFx();
-});
-
-export const loseFx = createEffect(async () => {
+export const endGameFx = createEffect(async () => {
   await timeout(1000);
   startNewGameFx();
 });
@@ -119,23 +121,40 @@ $playerValue.watch(playerValue => ({ playerValue }));
 
 export const $status = createStore(GameStatuses.DEAL)
   .on(setStatus, (state, status) => status)
-  .on([loseFx, winFx], (state, status) => GameStatuses.RESULTS)
-  .on([loseFx.done, winFx.done], (state, status) => GameStatuses.DEAL)
+  .on(endGameFx, (state, status) => GameStatuses.RESULTS)
+  .on(endGameFx.done, (state, status) => GameStatuses.DEAL)
   .reset(startNewGameFx);
 
-const dealerTurnDoneFx = createEffect(async ({ dealerValue, playerValue }) => {
+export const $gameResult = createStore(null)
+  .on(endGameFx, (state, result) => result)
+  .reset(startNewGameFx);
+
+const checkDealerHandFx = createEffect(async ({ dealerValue, playerValue }) => {
   const dealerHasBust = dealerValue > 21;
   const dealerHasBlackjack = dealerValue === 21;
   const dealerHasEnoughCards =
     dealerValue > 16 && dealerValue < 21 && dealerValue > playerValue;
 
-  if (dealerHasBlackjack || dealerHasEnoughCards) {
-    loseFx();
+  if (dealerHasBlackjack) {
+    endGameFx(GameResults.DEALER_HAS_BLACKJACK);
+  } else if (dealerHasEnoughCards) {
+    endGameFx(GameResults.DEALER_WIN);
   } else if (dealerHasBust) {
-    winFx();
+    endGameFx(GameResults.PLAYER_WIN);
   } else {
     await dealCardToDealerFx();
     dealerTurn();
+  }
+});
+
+const checkPlayerHandFx = createEffect(playerValue => {
+  const playerHasBust = playerValue > 21;
+  const playerHasBlackjack = playerValue === 21;
+
+  if (playerHasBlackjack) {
+    endGameFx(GameResults.PLAYER_HAS_BLACKJACK);
+  } else if (playerHasBust) {
+    endGameFx(GameResults.LOSE);
   }
 });
 
@@ -148,23 +167,24 @@ sample({
   clock: dealerTurn,
   filter: ({ status }) => status === GameStatuses.DEALER_TURN,
   fn: ({ dealerValue, playerValue }) => ({ dealerValue, playerValue }),
-  target: dealerTurnDoneFx
+  target: checkDealerHandFx
 });
 
-split({
+sample({
   source: $playerValue,
-  match: {
-    bust: value => value > 21,
-    blackjack: value => value === 21
-  },
-  cases: {
-    bust: loseFx,
-    blackjack: winFx
-  }
+  target: checkPlayerHandFx
 });
 
-export const $dealerScore = createStore(0).on(loseFx, value => value + 1);
-export const $playerScore = createStore(0).on(winFx, value => value + 1);
+export const $dealerScore = createStore(0).on(endGameFx, (value, result) =>
+  [GameResults.DEALER_HAS_BLACKJACK, GameResults.LOSE].includes(result)
+    ? value + 1
+    : value
+);
+export const $playerScore = createStore(0).on(endGameFx, (value, result) =>
+  ![GameResults.DEALER_HAS_BLACKJACK, GameResults.LOSE].includes(result)
+    ? value + 1
+    : value
+);
 
 function timeout(ms = process.env.NODE_ENV === "test" ? 0 : 500) {
   return new Promise(res => setTimeout(res, ms));
