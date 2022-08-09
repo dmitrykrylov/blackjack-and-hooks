@@ -1,10 +1,14 @@
 import React from "react";
 import App from "./App";
 import "@testing-library/jest-dom";
-import { render, cleanup, fireEvent } from "@testing-library/react";
-import waitForExpect from "wait-for-expect";
+import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { fork } from "effector";
 
-afterEach(cleanup);
+jest.useFakeTimers();
+
+afterEach(() => {
+  jest.clearAllTimers();
+});
 
 function renderApp(deck) {
   const view = render(<App deck={deck} />);
@@ -13,7 +17,7 @@ function renderApp(deck) {
   const stand = view.getByTestId("Stand");
 
   const waitForPlayerTurn = () =>
-    waitForExpect(() => {
+    waitFor(() => {
       expect(stand).toBeEnabled();
     });
 
@@ -71,10 +75,6 @@ test("player has bust", async () => {
 
   fireEvent.click(view.hit);
 
-  await view.waitForPlayerTurn();
-
-  fireEvent.click(view.stand);
-
   const playerHand = view.getByTestId("player-hand");
   const message = await view.findByText(/lose/i);
 
@@ -119,7 +119,7 @@ test("dealer has blackjack", async () => {
   expect(dealerHand).toContainElement(message);
 });
 
-test.skip("player has blackjack", async () => {
+test("player has blackjack", async () => {
   const view = renderApp([
     { rank: "10", suit: "S" },
     { rank: "10", suit: "H" }, // D1
@@ -146,10 +146,6 @@ test("player has blackjack after hit", async () => {
   await view.waitForPlayerTurn();
 
   fireEvent.click(view.hit);
-
-  await view.waitForPlayerTurn();
-
-  fireEvent.click(view.stand);
 
   const playerHand = view.getByTestId("player-hand");
   const message = await view.findByText(/blackjack/i);

@@ -1,5 +1,4 @@
 import {
-  combine,
   createEffect,
   createEvent,
   createStore,
@@ -124,20 +123,16 @@ export const $status = createStore(GameStatuses.DEAL)
   .on([loseFx.done, winFx.done], (state, status) => GameStatuses.DEAL)
   .reset(startNewGameFx);
 
-const $dealerHasEnoughCards = combine(
-  $dealerValue,
-  $playerValue,
-  (dealerValue, playerValue) => {
-    const dealerHasEnoughCards =
-      dealerValue > 16 && dealerValue < 21 && dealerValue > playerValue;
+const dealerTurnDoneFx = createEffect(async ({ dealerValue, playerValue }) => {
+  const dealerHasBust = dealerValue > 21;
+  const dealerHasBlackjack = dealerValue === 21;
+  const dealerHasEnoughCards =
+    dealerValue > 16 && dealerValue < 21 && dealerValue > playerValue;
 
-    return dealerHasEnoughCards;
-  }
-);
-
-const dealerTurnDoneFx = createEffect(async enoughCards => {
-  if (enoughCards) {
+  if (dealerHasBlackjack || dealerHasEnoughCards) {
     loseFx();
+  } else if (dealerHasBust) {
+    winFx();
   } else {
     await dealCardToDealerFx();
     dealerTurn();
@@ -145,23 +140,15 @@ const dealerTurnDoneFx = createEffect(async enoughCards => {
 });
 
 sample({
-  source: { status: $status, dealerHasEnoughCards: $dealerHasEnoughCards },
+  source: {
+    status: $status,
+    dealerValue: $dealerValue,
+    playerValue: $playerValue
+  },
   clock: dealerTurn,
   filter: ({ status }) => status === GameStatuses.DEALER_TURN,
-  fn: ({ dealerHasEnoughCards }) => dealerHasEnoughCards,
+  fn: ({ dealerValue, playerValue }) => ({ dealerValue, playerValue }),
   target: dealerTurnDoneFx
-});
-
-split({
-  source: $dealerValue,
-  match: {
-    bust: value => value > 21,
-    blackjack: value => value === 21
-  },
-  cases: {
-    bust: winFx,
-    blackjack: loseFx
-  }
 });
 
 split({
